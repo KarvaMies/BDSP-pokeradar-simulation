@@ -3,6 +3,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
+import os
 
 def end_menu(data, shinies):
     choice = '-1'
@@ -30,21 +31,24 @@ def chart_of_one(total_times, shinies):
 
     plt.xlabel("Chain Number")
     plt.ylabel("Time (minutes)")
-    plt.legend("Avg time/shiny")
-    plt.show()
+    plt.grid(axis='both', linestyle='--', alpha=0.7)
+    plt.legend(["Avg time/shiny"])
 
     save = input("Would you like to save the chart? (y/n) ").strip()
     while save.lower() not in ('y', 'n'):
         print("Invalid input. Please enter 'y' or 'n'\n")
         save = input("Would you like to save the chart? (y/n) ").strip()
 
-    if save.lower == 'y':
-        timestamp = datetime.now().strftime("%d.%m.%Y_%H:%M")
+    if save.lower() == 'y':
+        if not os.path.exists('charts'):
+            os.makedirs('charts')
+        timestamp = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
         if shinies == 1:
-            filename = f"avg_time_for_a_shiny_per_chain_{timestamp}.png"
+            filename = f"charts/avg_time_for_a_shiny_per_chain_{timestamp}.png"
         else:
-            filename = f"avg_time_for_{shinies}_shinies_per_chain_{timestamp}.png"
+            filename = f"charts/avg_time_for_{shinies}_shinies_per_chain_{timestamp}.png"
         plt.savefig(filename)
+    plt.show()
 
 def chart_of_all(total_times):
     original_data = [ #might want to delete this
@@ -57,7 +61,6 @@ def chart_of_all(total_times):
     
     data = []
     for line in lines:
-        print(f"Printing data line:\n{line}\n")
         if line == str(total_times):
             data_matches = True
     
@@ -67,7 +70,6 @@ def chart_of_all(total_times):
     
     if not data_matches:
         total_times = str(total_times)
-        print(f"Printing total_times:\n{total_times}\n")
         total_times = total_times.strip().strip('[]').split(',')
         total_times = [int(item.strip()) for item in total_times]
         data.append(total_times)
@@ -79,27 +81,38 @@ def chart_of_all(total_times):
 
     plt.xlabel("Chain Number")
     plt.ylabel("Time (minutes)")
+    plt.grid(axis='both', linestyle='--', alpha=0.7)
     plt.legend(["Test data"] + [f"Avg min/shiny dataset {i + 1}" for i in range(len(data))])
-    plt.show()
 
     save = input("Would you like to save the chart? (y/n) ").strip()
     while save.lower() not in ('y', 'n'):
         print("Invalid input. Please enter 'y' or 'n'\n")
         save = input("Would you like to save the chart? (y/n) ").strip()
     
-    if save.lower == 'y':
-        timestamp = datetime.now().strftime("%d.%m.%Y_%H:%M")
-        filename = f"avg_time_for_shinies_per_chain_all_data_{timestamp}.png"
+    if save.lower() == 'y':
+        if not os.path.exists('charts'):
+            os.makedirs('charts')
+        timestamp = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
+        filename = f"charts/avg_time_for_shinies_per_chain_all_data_{timestamp}.png"
         plt.savefig(filename)
+    plt.show()
 
 def main():
     MAX_CHAIN = 40
 
     num_of_shinies = 0
-    while num_of_shinies < 1:
-        num_of_shinies = int(input("How many shinies do you plan to hunt? ").strip())
+    while True:
+        num_of_shinies = input("How many shinies do you plan to hunt? ").strip()
+        if num_of_shinies.isdigit():
+            num_of_shinies = int(num_of_shinies)
+            if num_of_shinies >= 1:
+                break
+            else:
+                print("Please enter a number greater than or equal to 1.\n")
+        else:
+            print("Please enter a valid integer.\n")
 
-    SAMPLE_SIZE = 100# 5000 #30000
+    SAMPLE_SIZE = 5000
     odds = [4096, 3855, 3640, 3449, 3277, 3121, 2979, 2849, 2731, 2621,
             2521, 2427, 2341, 2259, 2185, 2114, 2048, 1986, 1927, 1872,
             1820, 1771, 1724, 1680, 1638, 1598, 1560, 1524, 1489, 1456,
@@ -121,8 +134,6 @@ def main():
                     found_shinies += 1
                     if found_shinies >= num_of_shinies:
                         found_all_shinies = True
-                        #print(f"Found all {found_shinies} shinies with chain of {local_chain}!")
-                        #break
 
                 if not found_all_shinies:
                     continue_chain = random.randint(1, 100) <= 93
@@ -141,8 +152,6 @@ def main():
                         found_shinies += 1
                         if found_shinies >= num_of_shinies:
                             found_all_shinies = True
-                            #print(f"Found all {found_shinies} shinies with chain of {local_chain}!")
-                            #break
 
                         if not found_all_shinies:
                             continue_chain = random.randint(1, 100) <= 93
@@ -164,9 +173,7 @@ def main():
         save = input("Do you want to save this data? (y/n) ").strip()
     if save.lower() == 'y':
         with open("data/raw_data.txt", "a") as file:
-            for item in total_times:
-                item_str = str(item)
-                file.write(item_str + "\n")
+            file.write(str(total_times) + "\n")
 
     end_menu(total_times, num_of_shinies)
 
