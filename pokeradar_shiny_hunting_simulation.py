@@ -51,9 +51,6 @@ def chart_of_one(total_times, shinies):
     plt.show()
 
 def chart_of_all(total_times):
-    original_data = [ #might want to delete this
-        161, 154, 146, 140, 135, 129, 126, 122, 120, 116, 114, 112, 111, 111, 110, 109, 109, 109, 111, 111, 112, 114, 115, 119, 120, 122, 127, 130, 135, 134, 138, 144, 149, 155, 161, 162, 163, 159, 161, 168
-    ]
     data_matches = False
 
     with open("data/raw_data.txt", "r") as file:
