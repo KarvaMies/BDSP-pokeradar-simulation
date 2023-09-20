@@ -53,6 +53,9 @@ def chart_of_one(total_times, shinies):
 def chart_of_all(total_times):
     data_matches = False
 
+    total_times = str(total_times)
+    x_values = np.arange(len(total_times))
+
     with open("data/raw_data.txt", "r") as file:
         lines = file.readlines()
     
@@ -66,13 +69,10 @@ def chart_of_all(total_times):
         data.append(line)
     
     if not data_matches:
-        total_times = str(total_times)
         total_times = total_times.strip().strip('[]').split(',')
         total_times = [int(item.strip()) for item in total_times]
         data.append(total_times)
 
-    x_values = np.arange(len(original_data))
-    plt.plot(x_values, original_data, marker='o', label="Test data")
     for i, dataset in enumerate(data):
         plt.plot(x_values, dataset, marker='o', label=f"Chain {i + 1}")
 
