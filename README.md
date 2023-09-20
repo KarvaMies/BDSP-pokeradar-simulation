@@ -6,5 +6,5 @@ How to use:
 
 1. Run the program
 2. Type how many shinies you plan to hunt
-   If it's not an integer the program crashes
-3. Wait for the results and visualization
+3. Wait for the results
+4. Use the menu to save the data, see line chart of the data, see line chart of all of the data and save these charts if you want to, and to exit the program
