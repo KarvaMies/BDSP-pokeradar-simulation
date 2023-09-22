@@ -5,7 +5,9 @@ Code updated and conversed from this reddit post: https://www.reddit.com/r/Pokem
 How to use:
 
 1. Run the program
+
    1.5. Choose whether you want to simulate hunt or analyze existing data
+
 2. Type how many shinies you plan to hunt
 3. Wait for the data to be simulated
 4. Choose whether you want to see only chart of the latest data or all saved data and the latest data. You can also see either total estimated time required to hunt wanted amount of shinies or average time per shiny. These charts can be saved if you want to
