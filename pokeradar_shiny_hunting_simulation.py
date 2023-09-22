@@ -34,17 +34,22 @@ def end_menu(data_total, data_avg, shinies):
 def time_spent_chart(total, avg, n):
     if total == -1:
         x_values = np.arange(len(avg))
+        plt.figure(figsize=(10, 6))
         plt.plot(x_values, avg, marker='o', label="Average Times")
-        plt.legend(["Average time / shiny"])
+        if n == 1:
+            plt.legend(["Total time"])
+        else:
+            plt.legend(["Average time / shiny"])
     elif avg == -1:
         x_values = np.arange(len(total))
+        plt.figure(figsize=(10, 6))
         plt.plot(x_values, total, marker='o', label="Total Times")
         plt.legend(["Total time"])
     else:
         print("Unexpected data encountered while trying to draw a chart. Check the code.")
         print("Exiting program..")
         sys.exit(1)
-        
+
     plt.ylabel("Time (minutes)")
     plt.xlabel("Chain Number")
     plt.grid(axis='both', linestyle='--', alpha=0.7)
@@ -77,7 +82,7 @@ def time_spent_chart(total, avg, n):
             print("If you see this something really weird happened. Check the code!")
             print("Exiting program..")
             sys.exit(1)
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
     plt.show()
 
 def time_spent_all_chart(total, avg):
@@ -86,6 +91,7 @@ def time_spent_all_chart(total, avg):
         if total == -1:
             time_data = str(avg)
             x_values = np.arange(len(avg))
+            plt.figure(figsize=(10, 6))
             with open("data/avg_time_data.txt", "r") as file:
                 lines = file.readlines()
         elif avg == -1:
@@ -102,13 +108,28 @@ def time_spent_all_chart(total, avg):
         return
     
     data = []
+    legend_marker = 0   # Tracks line number from file
+    legend_num_list = []
+    skip_first_line = True
     for line in lines:
+        if skip_first_line: # Metadata line
+            legend_marker += 1
+            skip_first_line = False
+            continue
+
+        line = line.strip()
+        if not line:    # Empty line
+            legend_marker += 1
+            continue
+        legend_num_list.append(legend_marker)
+
         if line == str(time_data):
             data_matches = True
     
         line = line.strip().strip('[]').split(',')
         line = [int(item.strip()) for item in line]
         data.append(line)
+        legend_marker += 1
     
     if not data_matches:
         time_data = time_data.strip().strip('[]').split(',')
@@ -118,11 +139,21 @@ def time_spent_all_chart(total, avg):
     for i, dataset in enumerate(data):
         plt.plot(x_values, dataset, marker='o', label=f"Chain {i + 1}")
     
+    legend_labels = []
     if total == -1:
-        plt.legend([f"Average time spent / shiny for {i + 1} shinies" if i > 0 else f"Time spent looking for a shiny" for i in range(len(data))])
+        for n in legend_num_list:
+            if n == 1:
+                legend_labels.append("Time spent looking for a shiny")
+            else:
+                legend_labels.append(f"Average time spent / shiny for {n} shinies")
     elif avg == -1:
-        plt.legend([f"Total time for {i + 1} shinies" if i > 0 else f"Time spent looking for a shiny" for i in range(len(data))])
+        for n in legend_num_list:
+            if n == 1:
+                legend_labels.append("Time spent looking for a shiny")
+            else:
+                legend_labels.append(f"Total time for {n} shinies")
 
+    plt.legend(legend_labels)
     plt.xlabel("Chain Number")
     plt.ylabel("Time (minutes)")
     plt.grid(axis='both', linestyle='--', alpha=0.7)
@@ -138,14 +169,14 @@ def time_spent_all_chart(total, avg):
             os.makedirs('charts')
         if not os.path.exists('charts/total'):
             os.makedirs('charts/total')
-        if not os.path.exists('charts/total'):
+        if not os.path.exists('charts/avg'):
             os.makedirs('charts/avg')
         timestamp = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
         if total == -1:
             filename = f"charts/avg/time_for_shinies_per_chain_all_data_{timestamp}.png"
-        if avg == -1:
+        elif avg == -1:
             filename = f"charts/total/time_for_shinies_per_chain_all_data_{timestamp}.png"
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
     plt.show()
 
 def main():
@@ -218,7 +249,7 @@ def main():
         total_times.append(round(local_time / (60 * SAMPLE_SIZE)))
         avg_times.append(round(local_time / (60 * SAMPLE_SIZE * num_of_shinies)))
 
-    print(f"Total time spent:\n{total_times}") #TODO posita tää ja alempi printti
+    print(f"Total time spent:\n{total_times}")
     print(f"Avg time spent/shiny:\n{avg_times}")
 
     save = input("Do you want to save this data to a file? (y/n) ").strip()
@@ -226,12 +257,38 @@ def main():
         print("Invalid input. Please enter 'y' or 'n'\n")
         save = input("Do you want to save this data? (y/n) ").strip()
     if save.lower() == 'y':
-        with open("data/total_time_data.txt", "a") as file:
-            file.write(str(total_times) + "\n")
-        with open("data/avg_time_data.txt", "a") as file:
-            file.write(str(avg_times) + "\n")
+        save_data(total_times, avg_times, num_of_shinies)
 
     end_menu(total_times, avg_times, num_of_shinies)
+
+def save_data(total, avg, n):
+    try:
+        with open("data/total_time_data.txt", "r") as total_file:
+            total_lines = total_file.readlines()
+        with open("data/avg_time_data.txt", "r") as avg_file:
+            avg_lines = avg_file.readlines()
+    except FileNotFoundError:
+        with open("data/total_time_data.txt", "w") as total_file:
+            total_file.write("METADATA: row number = number of shinies hunted\n")
+        with open("data/avg_time_data.txt", "w") as avg_file:
+            avg_file.write("METADATA: row number = number of shinies hunted\n")
+        
+
+    if n < len(total_lines):
+        total_lines[n] = str(total) + "\n"
+        avg_lines[n] = str(avg) + "\n"
+    else:
+        total_lines.extend(["\n"] * (n - len(total_lines)))
+        total_lines.append(str(total) + "\n")
+
+        avg_lines.extend(["\n"] * (n - len(avg_lines)))
+        avg_lines.append(str(avg) + "\n")
+
+    with open("data/total_time_data.txt", "w") as total_file:
+        total_file.writelines(total_lines)
+
+    with open("data/avg_time_data.txt", "w") as avg_file:
+        avg_file.writelines(avg_lines)
 
 if __name__ == "__main__":
     main()
