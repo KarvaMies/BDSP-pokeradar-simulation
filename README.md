@@ -6,7 +6,7 @@ How to use:
 
 1. Run the program
 2. Type how many shinies you plan to hunt
-3. Wait for the results
-4. Use the menu to save the data, see line chart of the data, see line chart of all of the data and save these charts if you want to, and to exit the program
+3. Wait for the data to be simulated
+4. Choose whether you want to see only chart of the latest data or all saved data and the latest data. You can also see either total estimated time required to hunt wanted amount of shinies or average time per shiny. These charts can be saved if you want to
 
-Simulating catching more than 4 shinies is not recommended and will propably up to an hour if SAMPLE_SIZE is not modified. However, when lowering SAMPLE_SIZE, the simulation becomes less accurate.
+Simulation for catching more than 4 shinies is not recommended and will propably take up to an hour depending you hardware if SAMPLE_SIZE is not modified. However, when lowering SAMPLE_SIZE, the simulation becomes less accurate.
