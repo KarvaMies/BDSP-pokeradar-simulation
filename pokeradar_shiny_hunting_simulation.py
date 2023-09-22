@@ -6,35 +6,40 @@ from datetime import datetime
 import os
 import sys
 
-def end_menu(data_total, data_avg, shinies):
+def end_menu(data_total, data_avg, shinies, hunt):
     choice = '-1'
     while choice != '0':
         print("\nWhat would you like to do?")
-        print("1) See the total time spent shiny hunting")
+        if hunt:
+            print("1) See the total time spent shiny hunting")
         print("2) See the total time spent of all data sets")
-        print("3) See the chart of average time spent/shiny")
+        if hunt:
+            print("3) See the chart of average time spent/shiny")
         print("4) See the chart of average time spent/shiny for all the data sets")
         print("0) Exit\n")
         choice = input("Your choice: ").strip()
 
-        if choice == '1':
+        if choice == '1' and hunt:
             time_spent_chart(data_total, -1, shinies)
         elif choice == '2':
-            time_spent_all_chart(data_total, -1)
-        elif choice == '3':
+            time_spent_all_chart(data_total, -1, hunt)
+        elif choice == '3' and hunt:
             time_spent_chart(-1, data_avg, shinies)
         elif choice == '4':
-            time_spent_all_chart(-1, data_avg)
+            time_spent_all_chart(-1, data_avg, hunt)
         elif choice == '0':
-            pass
+            print("Exiting the program..")
+            sys.exit(0)
         else:
-            print("Invalid input. Please enter '1', '2' or '0'\n")
-    print("Exiting the program..")
+            if hunt:
+                print("Invalid input. Please enter '1', '2', '3', '4' or '0'\n")
+            else:
+                print("Invalid input. Please enter '2', '4' or '0'\n")
 
 def time_spent_chart(total, avg, n):
+    plt.figure(figsize=(10, 6))
     if total == -1:
         x_values = np.arange(len(avg))
-        plt.figure(figsize=(10, 6))
         plt.plot(x_values, avg, marker='o', label="Average Times")
         if n == 1:
             plt.legend(["Total time"])
@@ -42,7 +47,6 @@ def time_spent_chart(total, avg, n):
             plt.legend(["Average time / shiny"])
     elif avg == -1:
         x_values = np.arange(len(total))
-        plt.figure(figsize=(10, 6))
         plt.plot(x_values, total, marker='o', label="Total Times")
         plt.legend(["Total time"])
     else:
@@ -85,18 +89,20 @@ def time_spent_chart(total, avg, n):
         plt.savefig(filename, dpi=300)
     plt.show()
 
-def time_spent_all_chart(total, avg):
+def time_spent_all_chart(total, avg, hunt):
     data_matches = False
+    plt.figure(figsize=(10, 6))
     try:
         if total == -1:
-            time_data = str(avg)
-            x_values = np.arange(len(avg))
-            plt.figure(figsize=(10, 6))
+            if hunt:
+                time_data = str(avg)
+                x_values = np.arange(len(avg))
             with open("data/avg_time_data.txt", "r") as file:
                 lines = file.readlines()
         elif avg == -1:
-            time_data = str(total)
-            x_values = np.arange(len(total))
+            if hunt:
+                time_data = str(total)
+                x_values = np.arange(len(total))
             with open("data/total_time_data.txt", "r") as file:
                 lines = file.readlines()
         else:
@@ -123,15 +129,18 @@ def time_spent_all_chart(total, avg):
             continue
         legend_num_list.append(legend_marker)
 
-        if line == str(time_data):
+        if hunt and line == str(time_data):
             data_matches = True
     
         line = line.strip().strip('[]').split(',')
         line = [int(item.strip()) for item in line]
         data.append(line)
         legend_marker += 1
+
+    if not hunt:
+        x_values = np.arange(len(data[0]))
     
-    if not data_matches:
+    if not data_matches and hunt:
         time_data = time_data.strip().strip('[]').split(',')
         time_data = [int(item.strip()) for item in time_data]
         data.append(time_data)
@@ -181,8 +190,24 @@ def time_spent_all_chart(total, avg):
 
 def main():
     MAX_CHAIN = 40
-
     num_of_shinies = 0
+
+    print("Welcome to Pokéradar shiny hunting simulation tool for Pokémon Brilliand Diamond and Shining Pearl!\n")
+
+    if os.path.exists("data/avg_time_data.txt") and os.path.exists("data/total_time_data.txt"):
+        while True:
+            print("What would you like to do?")
+            print("1) Simulate shiny hunting")
+            print("2) Inspect and analyze existing data")
+            choice = input("Your choice: ").strip()
+
+            if choice == '1':
+                break
+            elif choice == '2':
+                end_menu(0, 0, -1, False)
+            else:
+                print("Invalid input. Please enter '1' or '2'\n")
+
     while True:
         num_of_shinies = input("How many shinies do you plan to hunt? ").strip()
         if num_of_shinies.isdigit():
@@ -194,7 +219,7 @@ def main():
         else:
             print("Please enter a valid integer.\n")
 
-    SAMPLE_SIZE = 50#00 //TODO poista kommentit tästä
+    SAMPLE_SIZE = 50#00 //TODO for testing. remove #-character
     odds = [4096, 3855, 3640, 3449, 3277, 3121, 2979, 2849, 2731, 2621,
             2521, 2427, 2341, 2259, 2185, 2114, 2048, 1986, 1927, 1872,
             1820, 1771, 1724, 1680, 1638, 1598, 1560, 1524, 1489, 1456,
@@ -259,7 +284,7 @@ def main():
     if save.lower() == 'y':
         save_data(total_times, avg_times, num_of_shinies)
 
-    end_menu(total_times, avg_times, num_of_shinies)
+    end_menu(total_times, avg_times, num_of_shinies, True)
 
 def save_data(total, avg, n):
     try:
