@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime
 import os
 import sys
+import shutil
 
 def end_menu(data_total, data_avg, shinies, hunt):
     choice = '-1'
@@ -16,25 +17,34 @@ def end_menu(data_total, data_avg, shinies, hunt):
         if hunt:
             print("3) See the chart of average time spent/shiny")
         print("4) See the chart of average time spent/shiny for all the data sets")
+        if os.listdir("data/"):
+            print("5) Delete all data files")
+        if os.path.exists("charts/avg/") or os.path.exists("charts/total/"):
+            if os.listdir("charts/avg/") or os.listdir("charts/total/"):
+                print("6) Delete all charts")
         print("0) Exit\n")
         choice = input("Your choice: ").strip()
 
-        if choice == '1' and hunt:
-            time_spent_chart(data_total, -1, shinies)
-        elif choice == '2':
-            time_spent_all_chart(data_total, -1, hunt)
-        elif choice == '3' and hunt:
-            time_spent_chart(-1, data_avg, shinies)
-        elif choice == '4':
-            time_spent_all_chart(-1, data_avg, hunt)
-        elif choice == '0':
-            print("Exiting the program..")
-            sys.exit(0)
-        else:
-            if hunt:
-                print("Invalid input. Please enter '1', '2', '3', '4' or '0'\n")
+        try:
+            if choice == '1' and hunt:
+                time_spent_chart(data_total, -1, shinies)
+            elif choice == '2':
+                time_spent_all_chart(data_total, -1, hunt)
+            elif choice == '3' and hunt:
+                time_spent_chart(-1, data_avg, shinies)
+            elif choice == '4':
+                time_spent_all_chart(-1, data_avg, hunt)
+            elif os.listdir("data/") and choice == '5':
+                delete_files("data/")
+            elif (os.listdir("charts/avg/") or os.listdir("charts/total/")) and choice == '6':
+                delete_files("charts/")
+            elif choice == '0':
+                print("Exiting the program..")
+                sys.exit(0)
             else:
-                print("Invalid input. Please enter '2', '4' or '0'\n")
+                print("Invalid input. Please enter valid choice\n")
+        except FileNotFoundError:
+            print("Why would you try to delete files that you just moved or deleted?")
 
 def time_spent_chart(total, avg, n):
     plt.figure(figsize=(10, 6))
@@ -59,34 +69,27 @@ def time_spent_chart(total, avg, n):
     plt.grid(axis='both', linestyle='--', alpha=0.7)
     plt.ylim(bottom=0)
 
-    save = input("Would you like to save the chart? (y/n) ").strip()
-    while save.lower() not in ('y', 'n'):
-        print("Invalid input. Please enter 'y' or 'n'\n")
-        save = input("Would you like to save the chart? (y/n) ").strip()
-
-    if save.lower() == 'y':
-        if not os.path.exists('charts'):
-            os.makedirs('charts')
-        if not os.path.exists('charts/total'):
-            os.makedirs('charts/total')
-        if not os.path.exists('charts/total'):
-            os.makedirs('charts/avg')
-        timestamp = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
-        if total == -1:
-            if n == 1:
-                filename = f"charts/avg/time_for_a_shiny_per_chain_{timestamp}.png"
-            else:
-                filename = f"charts/avg/time_for_{n}_shinies_per_chain_{timestamp}.png"
-        elif avg == -1:
-            if n == 1:
-                filename = f"charts/total/time_for_a_shiny_per_chain_{timestamp}.png"
-            else:
-                filename = f"charts/total/time_for_{n}_shinies_per_chain_{timestamp}.png"
+    if not os.path.exists('charts'):
+        os.makedirs('charts')
+    if not os.path.exists('charts/total'):
+        os.makedirs('charts/total')
+    if not os.path.exists('charts/total'):
+        os.makedirs('charts/avg')
+    if total == -1:
+        if n == 1:
+            filename = f"charts/avg/time_for_1_shiny_per_chain.png"
         else:
-            print("If you see this something really weird happened. Check the code!")
-            print("Exiting program..")
-            sys.exit(1)
-        plt.savefig(filename, dpi=300)
+            filename = f"charts/avg/avg_time_for_{n}_shinies_per_chain.png"
+    elif avg == -1:
+        if n == 1:
+            filename = f"charts/total/time_for_1_shiny_per_chain.png"
+        else:
+            filename = f"charts/total/avg_time_for_{n}_shinies_per_chain.png"
+    else:
+        print("If you see this something really weird happened. Check the code!")
+        print("Exiting program..")
+        sys.exit(1)
+    plt.savefig(filename, dpi=300)
     plt.show()
 
 def time_spent_all_chart(total, avg, hunt):
@@ -149,47 +152,75 @@ def time_spent_all_chart(total, avg, hunt):
         plt.plot(x_values, dataset, marker='o', label=f"Chain {i + 1}")
     
     legend_labels = []
+    legend_nums = ""
     if total == -1:
         for n in legend_num_list:
+            legend_nums = f"{legend_nums}_{str(n)}"
             if n == 1:
                 legend_labels.append("Time spent looking for a shiny")
             else:
                 legend_labels.append(f"Average time spent / shiny for {n} shinies")
     elif avg == -1:
         for n in legend_num_list:
+            legend_nums = f"{legend_nums}_{str(n)}"
             if n == 1:
                 legend_labels.append("Time spent looking for a shiny")
             else:
                 legend_labels.append(f"Total time for {n} shinies")
+    if legend_nums.startswith("_"):
+        legend_nums = legend_nums[1:]
 
     plt.legend(legend_labels)
     plt.xlabel("Chain Number")
     plt.ylabel("Time (minutes)")
     plt.grid(axis='both', linestyle='--', alpha=0.7)
     plt.ylim(bottom=0)
-
-    save = input("Would you like to save the chart? (y/n) ").strip()
-    while save.lower() not in ('y', 'n'):
-        print("Invalid input. Please enter 'y' or 'n'\n")
-        save = input("Would you like to save the chart? (y/n) ").strip()
     
-    if save.lower() == 'y':
-        if not os.path.exists('charts'):
-            os.makedirs('charts')
-        if not os.path.exists('charts/total'):
-            os.makedirs('charts/total')
-        if not os.path.exists('charts/avg'):
-            os.makedirs('charts/avg')
-        timestamp = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
-        if total == -1:
-            filename = f"charts/avg/time_for_shinies_per_chain_all_data_{timestamp}.png"
-        elif avg == -1:
-            filename = f"charts/total/time_for_shinies_per_chain_all_data_{timestamp}.png"
-        plt.savefig(filename, dpi=300)
+    if not os.path.exists('charts'):
+        os.makedirs('charts')
+    if not os.path.exists('charts/total'):
+        os.makedirs('charts/total')
+    if not os.path.exists('charts/avg'):
+        os.makedirs('charts/avg')
+    if total == -1:
+        filename = f"charts/avg/avg_time_for_{legend_nums}_shinies_per_chain.png"
+    elif avg == -1:
+        filename = f"charts/total/total_time_for_{legend_nums}_shinies_per_chain.png"
+    plt.savefig(filename, dpi=300)
     plt.show()
+
+def delete_files(src_folder):
+    cont = input(f"Are you sure you want to delete all contents inside '{src_folder}' folder? (y/n) ").strip()
+    while cont.lower() not in ('y', 'n'):
+        print("Invalid input. Please enter 'y' or 'n'\n")
+        cont = input(f"Are you sure you want to delete all the files inside '{src_folder}' folder? (y/n) ").strip()
+    
+    if cont.lower() == 'y':
+        dest_folder = f"deleted/{src_folder}"
+        if not os.path.exists(dest_folder):
+            os.makedirs(dest_folder)
+        timestamp = datetime.now().strftime("%d.%m.%Y_%H-%M")
+        for src_dir, dirs, files in os.walk(src_folder):
+            dst_dir = src_dir.replace(src_folder, dest_folder)
+            if not os.path.exists(dst_dir):
+                os.mkdir(dst_dir)
+            for file_ in files:
+                src_file = os.path.join(src_dir, file_)
+                dst_file = os.path.join(dst_dir, file_)
+                if os.path.exists(dst_file):
+                    os.remove(dst_file)
+                shutil.move(src_file, dst_dir)
+
+                file_name, extension = os.path.splitext(file_)
+                name = f"{file_name}_{timestamp}{extension}"
+                file = os.path.join(dst_dir, name)
+                os.rename(dst_file, file)
+        print(f"Contents from '{src_folder}' are now moved to '{dest_folder}'.")
+        print("If you want to permanently delete the files, please do it manually.")
 
 def main():
     MAX_CHAIN = 40
+    SAMPLE_SIZE = 5000
     num_of_shinies = 0
 
     print("Welcome to Pokéradar shiny hunting simulation tool for Pokémon Brilliand Diamond and Shining Pearl!\n")
@@ -219,7 +250,6 @@ def main():
         else:
             print("Please enter a valid integer.\n")
 
-    SAMPLE_SIZE = 50#00 //TODO for testing. remove #-character
     odds = [4096, 3855, 3640, 3449, 3277, 3121, 2979, 2849, 2731, 2621,
             2521, 2427, 2341, 2259, 2185, 2114, 2048, 1986, 1927, 1872,
             1820, 1771, 1724, 1680, 1638, 1598, 1560, 1524, 1489, 1456,
@@ -276,14 +306,7 @@ def main():
 
     print(f"Total time spent:\n{total_times}")
     print(f"Avg time spent/shiny:\n{avg_times}")
-
-    save = input("Do you want to save this data to a file? (y/n) ").strip()
-    while save.lower() not in ('y', 'n'):
-        print("Invalid input. Please enter 'y' or 'n'\n")
-        save = input("Do you want to save this data? (y/n) ").strip()
-    if save.lower() == 'y':
-        save_data(total_times, avg_times, num_of_shinies)
-
+    save_data(total_times, avg_times, num_of_shinies)
     end_menu(total_times, avg_times, num_of_shinies, True)
 
 def save_data(total, avg, n):
