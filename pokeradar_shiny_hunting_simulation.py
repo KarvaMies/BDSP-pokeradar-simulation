@@ -310,6 +310,8 @@ def main():
     end_menu(total_times, avg_times, num_of_shinies, True)
 
 def save_data(total, avg, n):
+    if not os.path.exists('data'):
+        os.makedirs('data')
     try:
         with open("data/total_time_data.txt", "r") as total_file:
             total_lines = total_file.readlines()
