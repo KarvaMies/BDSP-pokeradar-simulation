@@ -6,10 +6,12 @@ from datetime import datetime
 import os
 import sys
 import shutil
+import traceback
+
 
 def end_menu(data_total, data_avg, shinies, hunt):
-    choice = '-1'
-    while choice != '0':
+    choice = "-1"
+    while choice != "0":
         print("\nWhat would you like to do?")
         if hunt:
             print("1) See the total time spent shiny hunting")
@@ -19,62 +21,71 @@ def end_menu(data_total, data_avg, shinies, hunt):
         print("4) See the chart of average time spent/shiny for all the data sets")
         if os.listdir("data/"):
             print("5) Delete all data files")
-        if os.path.exists("charts/avg/") or os.path.exists("charts/total/"):
-            if os.listdir("charts/avg/") or os.listdir("charts/total/"):
+        if os.path.exists("charts/avg/"):
+            if os.listdir("charts/avg/"):
+                print("6) Delete all charts")
+        elif os.path.exists("charts/total/"):
+            if os.listdir("charts/total/"):
                 print("6) Delete all charts")
         print("0) Exit\n")
         choice = input("Your choice: ").strip()
 
         try:
-            if choice == '1' and hunt:
+            if choice == "1" and hunt:
                 time_spent_chart(data_total, -1, shinies)
-            elif choice == '2':
+            elif choice == "2":
                 time_spent_all_chart(data_total, -1, hunt)
-            elif choice == '3' and hunt:
+            elif choice == "3" and hunt:
                 time_spent_chart(-1, data_avg, shinies)
-            elif choice == '4':
+            elif choice == "4":
                 time_spent_all_chart(-1, data_avg, hunt)
-            elif os.listdir("data/") and choice == '5':
+            elif choice == "5" and os.listdir("data/"):
                 delete_files("data/")
-            elif (os.listdir("charts/avg/") or os.listdir("charts/total/")) and choice == '6':
+            elif choice == "6" and (
+                os.listdir("charts/avg/") or os.listdir("charts/total/")
+            ):
                 delete_files("charts/")
-            elif choice == '0':
+            elif choice == "0":
                 print("Exiting the program..")
                 sys.exit(0)
             else:
                 print("Invalid input. Please enter valid choice\n")
         except FileNotFoundError:
             print("Why would you try to delete files that you just moved or deleted?")
+            traceback.print_exc()
+
 
 def time_spent_chart(total, avg, n):
     plt.figure(figsize=(10, 6))
     if total == -1:
         x_values = np.arange(len(avg))
-        plt.plot(x_values, avg, marker='o', label="Average Times")
+        plt.plot(x_values, avg, marker="o", label="Average Times")
         if n == 1:
             plt.legend(["Total time"])
         else:
             plt.legend(["Average time / shiny"])
     elif avg == -1:
         x_values = np.arange(len(total))
-        plt.plot(x_values, total, marker='o', label="Total Times")
+        plt.plot(x_values, total, marker="o", label="Total Times")
         plt.legend(["Total time"])
     else:
-        print("Unexpected data encountered while trying to draw a chart. Check the code.")
+        print(
+            "Unexpected data encountered while trying to draw a chart. Check the code."
+        )
         print("Exiting program..")
         sys.exit(1)
 
     plt.ylabel("Time (minutes)")
     plt.xlabel("Chain Number")
-    plt.grid(axis='both', linestyle='--', alpha=0.7)
+    plt.grid(axis="both", linestyle="--", alpha=0.7)
     plt.ylim(bottom=0)
 
-    if not os.path.exists('charts'):
-        os.makedirs('charts')
-    if not os.path.exists('charts/total'):
-        os.makedirs('charts/total')
-    if not os.path.exists('charts/total'):
-        os.makedirs('charts/avg')
+    if not os.path.exists("charts"):
+        os.makedirs("charts")
+    if not os.path.exists("charts/total"):
+        os.makedirs("charts/total")
+    if not os.path.exists("charts/avg"):
+        os.makedirs("charts/avg")
     if total == -1:
         if n == 1:
             filename = f"charts/avg/time_for_1_shiny_per_chain.png"
@@ -91,6 +102,7 @@ def time_spent_chart(total, avg, n):
         sys.exit(1)
     plt.savefig(filename, dpi=300)
     plt.show()
+
 
 def time_spent_all_chart(total, avg, hunt):
     data_matches = False
@@ -109,48 +121,52 @@ def time_spent_all_chart(total, avg, hunt):
             with open("data/total_time_data.txt", "r") as file:
                 lines = file.readlines()
         else:
-            print("Unexpected data encountered while trying to draw a chart. Check the code.")
+            print(
+                "Unexpected data encountered while trying to draw a chart. Check the code."
+            )
             print("Exiting program..")
             sys.exit(1)
     except FileNotFoundError:
-        print("Could not find the data file. Make sure you save the data to the file first.")
+        print(
+            "Could not find the data file. Make sure you save the data to the file first."
+        )
         return
-    
+
     data = []
-    legend_marker = 0   # Tracks line number from file
+    legend_marker = 0  # Tracks line number from file
     legend_num_list = []
     skip_first_line = True
     for line in lines:
-        if skip_first_line: # Metadata line
+        if skip_first_line:  # Metadata line
             legend_marker += 1
             skip_first_line = False
             continue
 
         line = line.strip()
-        if not line:    # Empty line
+        if not line:  # Empty line
             legend_marker += 1
             continue
         legend_num_list.append(legend_marker)
 
         if hunt and line == str(time_data):
             data_matches = True
-    
-        line = line.strip().strip('[]').split(',')
+
+        line = line.strip().strip("[]").split(",")
         line = [int(item.strip()) for item in line]
         data.append(line)
         legend_marker += 1
 
     if not hunt:
         x_values = np.arange(len(data[0]))
-    
+
     if not data_matches and hunt:
-        time_data = time_data.strip().strip('[]').split(',')
+        time_data = time_data.strip().strip("[]").split(",")
         time_data = [int(item.strip()) for item in time_data]
         data.append(time_data)
 
     for i, dataset in enumerate(data):
-        plt.plot(x_values, dataset, marker='o', label=f"Chain {i + 1}")
-    
+        plt.plot(x_values, dataset, marker="o", label=f"Chain {i + 1}")
+
     legend_labels = []
     legend_nums = ""
     if total == -1:
@@ -173,15 +189,15 @@ def time_spent_all_chart(total, avg, hunt):
     plt.legend(legend_labels)
     plt.xlabel("Chain Number")
     plt.ylabel("Time (minutes)")
-    plt.grid(axis='both', linestyle='--', alpha=0.7)
+    plt.grid(axis="both", linestyle="--", alpha=0.7)
     plt.ylim(bottom=0)
-    
-    if not os.path.exists('charts'):
-        os.makedirs('charts')
-    if not os.path.exists('charts/total'):
-        os.makedirs('charts/total')
-    if not os.path.exists('charts/avg'):
-        os.makedirs('charts/avg')
+
+    if not os.path.exists("charts"):
+        os.makedirs("charts")
+    if not os.path.exists("charts/total"):
+        os.makedirs("charts/total")
+    if not os.path.exists("charts/avg"):
+        os.makedirs("charts/avg")
     if total == -1:
         filename = f"charts/avg/avg_time_for_{legend_nums}_shinies_per_chain.png"
     elif avg == -1:
@@ -189,13 +205,18 @@ def time_spent_all_chart(total, avg, hunt):
     plt.savefig(filename, dpi=300)
     plt.show()
 
+
 def delete_files(src_folder):
-    cont = input(f"Are you sure you want to delete all contents inside '{src_folder}' folder? (y/n) ").strip()
-    while cont.lower() not in ('y', 'n'):
+    cont = input(
+        f"Are you sure you want to delete all contents inside '{src_folder}' folder? (y/n) "
+    ).strip()
+    while cont.lower() not in ("y", "n"):
         print("Invalid input. Please enter 'y' or 'n'\n")
-        cont = input(f"Are you sure you want to delete all the files inside '{src_folder}' folder? (y/n) ").strip()
-    
-    if cont.lower() == 'y':
+        cont = input(
+            f"Are you sure you want to delete all the files inside '{src_folder}' folder? (y/n) "
+        ).strip()
+
+    if cont.lower() == "y":
         dest_folder = f"deleted/{src_folder}"
         if not os.path.exists(dest_folder):
             os.makedirs(dest_folder)
@@ -218,42 +239,94 @@ def delete_files(src_folder):
         print(f"Contents from '{src_folder}' are now moved to '{dest_folder}'.")
         print("If you want to permanently delete the files, please do it manually.")
 
+
+def get_n_shinies():
+    while True:
+        num_of_shinies = input(
+            "How many shinies do you plan to hunt? (0 exits) "
+        ).strip()
+        if num_of_shinies.isdigit() and int(num_of_shinies) > 0:
+            return int(num_of_shinies)
+        elif num_of_shinies == 0:
+            print("Exiting the program..")
+            sys.exit(0)
+        else:
+            print("Invalid input. Please enter a psoitive number.\n")
+
+
 def main():
     MAX_CHAIN = 40
-    SAMPLE_SIZE = 5000
-    num_of_shinies = 0
+    SAMPLE_SIZE = 5000  # 30000
 
-    print("Welcome to Pokéradar shiny hunting simulation tool for Pokémon Brilliand Diamond and Shining Pearl!\n")
+    print(
+        "Welcome to Pokéradar shiny hunting simulation tool for Pokémon Brilliand Diamond and Shining Pearl!\n"
+    )
 
-    if os.path.exists("data/avg_time_data.txt") and os.path.exists("data/total_time_data.txt"):
+    if os.path.exists("data/avg_time_data.txt") and os.path.exists(
+        "data/total_time_data.txt"
+    ):
         while True:
             print("What would you like to do?")
             print("1) Simulate shiny hunting")
             print("2) Inspect and analyze existing data")
+            print("0) Exit\n")
             choice = input("Your choice: ").strip()
 
-            if choice == '1':
+            if choice == "1":
                 break
-            elif choice == '2':
+            elif choice == "2":
                 end_menu(0, 0, -1, False)
+            elif choice == "0":
+                print("Exiting the program..")
+                sys.exit(0)
             else:
                 print("Invalid input. Please enter '1' or '2'\n")
 
-    while True:
-        num_of_shinies = input("How many shinies do you plan to hunt? ").strip()
-        if num_of_shinies.isdigit():
-            num_of_shinies = int(num_of_shinies)
-            if num_of_shinies >= 1:
-                break
-            else:
-                print("Please enter a number greater than or equal to 1.\n")
-        else:
-            print("Please enter a valid integer.\n")
+    n_shinies = get_n_shinies()
 
-    odds = [4096, 3855, 3640, 3449, 3277, 3121, 2979, 2849, 2731, 2621,
-            2521, 2427, 2341, 2259, 2185, 2114, 2048, 1986, 1927, 1872,
-            1820, 1771, 1724, 1680, 1638, 1598, 1560, 1524, 1489, 1456,
-            1310, 1285, 1260, 1236, 1213, 1192, 993, 799, 400, 200, 99]
+    odds = [
+        4096,
+        3855,
+        3640,
+        3449,
+        3277,
+        3121,
+        2979,
+        2849,
+        2731,
+        2621,
+        2521,
+        2427,
+        2341,
+        2259,
+        2185,
+        2114,
+        2048,
+        1986,
+        1927,
+        1872,
+        1820,
+        1771,
+        1724,
+        1680,
+        1638,
+        1598,
+        1560,
+        1524,
+        1489,
+        1456,
+        1310,
+        1285,
+        1260,
+        1236,
+        1213,
+        1192,
+        993,
+        799,
+        400,
+        200,
+        99,
+    ]
     total_times = []
     avg_times = []
 
@@ -270,7 +343,7 @@ def main():
                 patches = [random.randint(1, odds[current_chain]) for _ in range(4)]
                 if 1 in patches:
                     found_shinies += 1
-                    if found_shinies >= num_of_shinies:
+                    if found_shinies >= n_shinies:
                         found_all_shinies = True
 
                 if not found_all_shinies:
@@ -285,10 +358,12 @@ def main():
                 while current_chain >= local_chain and not found_all_shinies:
                     local_chain_copy = local_chain
                     local_time += 10
-                    patches = [random.randint(1, odds[local_chain_copy]) for _ in range(4)]
+                    patches = [
+                        random.randint(1, odds[local_chain_copy]) for _ in range(4)
+                    ]
                     if 1 in patches:
                         found_shinies += 1
-                        if found_shinies >= num_of_shinies:
+                        if found_shinies >= n_shinies:
                             found_all_shinies = True
 
                         if not found_all_shinies:
@@ -302,27 +377,30 @@ def main():
                                 local_time += 100
 
         total_times.append(round(local_time / (60 * SAMPLE_SIZE)))
-        avg_times.append(round(local_time / (60 * SAMPLE_SIZE * num_of_shinies)))
+        avg_times.append(round(local_time / (60 * SAMPLE_SIZE * n_shinies)))
 
     print(f"Total time spent:\n{total_times}")
     print(f"Avg time spent/shiny:\n{avg_times}")
-    save_data(total_times, avg_times, num_of_shinies)
-    end_menu(total_times, avg_times, num_of_shinies, True)
+    save_data(total_times, avg_times, n_shinies)
+    end_menu(total_times, avg_times, n_shinies, True)
+
 
 def save_data(total, avg, n):
-    if not os.path.exists('data'):
-        os.makedirs('data')
-    try:
-        with open("data/total_time_data.txt", "r") as total_file:
-            total_lines = total_file.readlines()
-        with open("data/avg_time_data.txt", "r") as avg_file:
-            avg_lines = avg_file.readlines()
-    except FileNotFoundError:
+    if not os.path.exists("data"):
+        os.makedirs("data")
+
+    if not os.path.exists("data/total_time_data.txt"):
         with open("data/total_time_data.txt", "w") as total_file:
             total_file.write("METADATA: row number = number of shinies hunted\n")
+
+    if not os.path.exists("data/avg_time_data.txt"):
         with open("data/avg_time_data.txt", "w") as avg_file:
             avg_file.write("METADATA: row number = number of shinies hunted\n")
-        
+
+    with open("data/total_time_data.txt", "r") as total_file:
+        total_lines = total_file.readlines()
+    with open("data/avg_time_data.txt", "r") as avg_file:
+        avg_lines = avg_file.readlines()
 
     if n < len(total_lines):
         total_lines[n] = str(total) + "\n"
@@ -339,6 +417,7 @@ def save_data(total, avg, n):
 
     with open("data/avg_time_data.txt", "w") as avg_file:
         avg_file.writelines(avg_lines)
+
 
 if __name__ == "__main__":
     main()
