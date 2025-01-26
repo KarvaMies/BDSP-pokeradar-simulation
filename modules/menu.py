@@ -1,12 +1,13 @@
 import os
 import sys
 import traceback
+import glob
 from data_handler import delete_files, restore_files
 from chart_generator import time_spent_chart, time_spent_all_chart
 from simulation import run_simulation
 
 MAX_CHAIN = 40
-SAMPLE_SIZE = 5000  # 30000
+SAMPLE_SIZE = 50  # 00  # 30000
 ODDS = [
     4096,
     3855,
@@ -52,48 +53,7 @@ ODDS = [
 ]
 
 
-def start_menu():
-    """
-    Runs only at the start of the program. Shows a menu.
-
-    Args:
-        None
-
-    Returns:
-        None
-    """
-    num = -1
-    total_list = []
-    avg_list = []
-    hunt_done = False
-    print(
-        "Welcome to Pokéradar shiny hunting simulation tool for Pokémon Brilliand Diamond and Shining Pearl!\n"
-    )
-
-    if os.path.exists("data/avg_time_data.txt") and os.path.exists(
-        "data/total_time_data.txt"
-    ):
-        while True:
-            print("What would you like to do?")
-            print("1) Simulate shiny hunting")
-            print("2) Inspect and analyze existing data")
-            print("0) Exit\n")
-            choice = input("Your choice: ").strip()
-
-            if choice == "1":
-                num = get_n_shinies()
-                total_list, avg_list = run_simulation(MAX_CHAIN, SAMPLE_SIZE, num, ODDS)
-                hunt_done = True
-            elif choice == "2":
-                end_menu(total_list, avg_list, num, hunt_done)
-            elif choice == "0":
-                print("Exiting the program..")
-                sys.exit(0)
-            else:
-                print("Invalid input. Please enter a valid choice\n")
-
-
-def end_menu(data_total: list, data_avg: list, shinies: int, hunt: bool):
+def menu(data_total: list, data_avg: list, shinies: int, hunt_done: bool):
     """
     Prints and operates the menu.
 
@@ -105,45 +65,60 @@ def end_menu(data_total: list, data_avg: list, shinies: int, hunt: bool):
 
     Returns:
         None
-
-    TODO yhdistä alkuperäsen main() alkumenu tähän
     """
     choice = "-1"
+    total_list = data_total
+    avg_list = data_avg
+    n_shinies = shinies
+    avg_exists = glob.glob("data/avg_time_data_SS_*.txt")
+    total_exists = glob.glob("data/total_time_data_SS_*.txt")
+
     while choice != "0":
         print("\nWhat would you like to do?")
-        if hunt:
-            print("1) See the total time spent shiny hunting")
-        print("2) See the total time spent of all data sets")
-        if hunt:
-            print("3) See the chart of average time spent/shiny")
-        print("4) See the chart of average time spent/shiny for all the data sets")
-        if os.listdir("data/"):
-            print("5) Delete all data files")
+        print("1) Simulate shiny hunting")
+        if hunt_done and total_list:
+            print("2) See the total time spent shiny hunting")
+        if total_exists:
+            print("3) See the total time spent of all data sets")
+        if hunt_done and avg_list:
+            print("4) See the chart of average time spent/shiny")
+        if avg_exists:
+            print("5) See the chart of average time spent/shiny for all the data sets")
+        if os.path.exists("data/") and os.listdir("data/"):
+            print("6) Delete all data files")
         if (os.path.exists("charts/avg/") and os.listdir("charts/avg/")) or (
             os.path.exists("charts/total/") and os.listdir("charts/total/")
         ):
-            print("6) Delete all charts")
+            print("7) Delete all charts")
         if os.path.exists("deleted/"):
-            print("7) Restore deleted files")
+            print("8) Restore deleted files")
         print("0) Exit\n")
         choice = input("Your choice: ").strip()
 
         try:
-            if choice == "1" and hunt:
-                time_spent_chart(data_total, [], shinies)
-            elif choice == "2":
-                time_spent_all_chart(data_total, [], hunt)
-            elif choice == "3" and hunt:
-                time_spent_chart([], data_avg, shinies)
-            elif choice == "4":
-                time_spent_all_chart([], data_avg, hunt)
-            elif choice == "5" and os.listdir("data/"):
+            if choice == "1":
+                n_shinies = get_n_shinies()
+                total_list, avg_list = run_simulation(
+                    MAX_CHAIN, SAMPLE_SIZE, n_shinies, ODDS
+                )
+                hunt_done = True
+
+            if choice == "2" and hunt_done:
+                time_spent_chart(total_list, [], n_shinies)
+            elif choice == "3" and total_exists:
+                time_spent_all_chart(total_list, [], hunt_done)
+            elif choice == "4" and hunt_done:
+                time_spent_chart([], avg_list, n_shinies)
+            elif choice == "5" and avg_exists:
+                time_spent_all_chart([], avg_list, hunt_done)
+            elif choice == "6" and os.path.exists("data/") and os.listdir("data/"):
                 delete_files("data/")
-            elif choice == "6" and (
-                os.listdir("charts/avg/") or os.listdir("charts/total/")
+            elif choice == "7" and (
+                (os.path.exists("charts/avg/") and os.listdir("charts/avg/"))
+                or (os.path.exists("charts/total/") and os.listdir("charts/total/"))
             ):
                 delete_files("charts/")
-            elif choice == "7" and os.listdir("deleted/"):
+            elif choice == "8" and os.path.exists("deleted/"):
                 restore_files()
             elif choice == "0":
                 print("Exiting the program..")
@@ -171,7 +146,7 @@ def get_n_shinies():
         ).strip()
         if num_of_shinies.isdigit() and int(num_of_shinies) > 0:
             return int(num_of_shinies)
-        elif num_of_shinies == 0:
+        elif num_of_shinies == "0":
             print("Exiting the program..")
             sys.exit(0)
         else:
@@ -179,4 +154,7 @@ def get_n_shinies():
 
 
 if __name__ == "__main__":
-    start_menu()
+    print(
+        "Welcome to Pokéradar shiny hunting simulation tool for Pokémon Brilliand Diamond and Shining Pearl!"
+    )
+    menu([], [], -1, False)
