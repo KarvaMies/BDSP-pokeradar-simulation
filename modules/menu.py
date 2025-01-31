@@ -7,7 +7,7 @@ from chart_generator import time_spent_chart, time_spent_all_chart
 from simulation import run_simulation
 
 MAX_CHAIN = 40
-SAMPLE_SIZE = 50  # 00  # 30000
+SAMPLE_SIZE = 51  # 00  # 30000
 ODDS = [
     4096,
     3855,
@@ -70,10 +70,11 @@ def menu(data_total: list, data_avg: list, shinies: int, hunt_done: bool):
     total_list = data_total
     avg_list = data_avg
     n_shinies = shinies
-    avg_exists = glob.glob("data/avg_time_data_SS_*.txt")
-    total_exists = glob.glob("data/total_time_data_SS_*.txt")
 
     while choice != "0":
+        avg_exists = glob.glob("data/avg_time_data_SS_*.txt")
+        total_exists = glob.glob("data/total_time_data_SS_*.txt")
+
         print("\nWhat would you like to do?")
         print("1) Simulate shiny hunting")
         if hunt_done and total_list:
@@ -85,11 +86,11 @@ def menu(data_total: list, data_avg: list, shinies: int, hunt_done: bool):
         if avg_exists:
             print("5) See the chart of average time spent/shiny for all the data sets")
         if os.path.exists("data/") and os.listdir("data/"):
-            print("6) Delete all data files")
+            print("6) Delete data files")
         if (os.path.exists("charts/avg/") and os.listdir("charts/avg/")) or (
             os.path.exists("charts/total/") and os.listdir("charts/total/")
         ):
-            print("7) Delete all charts")
+            print("7) Delete charts")
         if os.path.exists("deleted/"):
             print("8) Restore deleted files")
         print("0) Exit\n")
@@ -103,14 +104,14 @@ def menu(data_total: list, data_avg: list, shinies: int, hunt_done: bool):
                 )
                 hunt_done = True
 
-            if choice == "2" and hunt_done:
-                time_spent_chart(total_list, [], n_shinies)
+            elif choice == "2" and hunt_done:
+                time_spent_chart(total_list, [], n_shinies, SAMPLE_SIZE)
             elif choice == "3" and total_exists:
-                time_spent_all_chart(total_list, [], hunt_done)
+                time_spent_all_chart("total")
             elif choice == "4" and hunt_done:
-                time_spent_chart([], avg_list, n_shinies)
+                time_spent_chart([], avg_list, n_shinies, SAMPLE_SIZE)
             elif choice == "5" and avg_exists:
-                time_spent_all_chart([], avg_list, hunt_done)
+                time_spent_all_chart("avg")
             elif choice == "6" and os.path.exists("data/") and os.listdir("data/"):
                 delete_files("data/")
             elif choice == "7" and (
