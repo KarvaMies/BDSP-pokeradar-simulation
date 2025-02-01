@@ -2,68 +2,62 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
-from data_handler import get_SS
+from menu import graph_menu
 
 
-def time_spent_chart(total: list, avg: list, n: int, SS: int):
+def time_spent_chart(mode: str, SS: int):
     """
-    Draws and shows chart for simulated n number of shinies.
-    Either total or avg must be an empty list.
+    Draws and shows chart from a chosen simulation data.
 
     Args:
-        total (list): List of times taken for hunts
-        avg (list): List of average times taken for hunts
-        n (int): Number of shinies hunted
+        mode (str): Tell if the chart is generated from total or average data.
+            Must be either 'total' or 'avg'
         SS (int): Sample Size of the simulation
 
     Returns:
         None
     """
     plt.figure(figsize=(10, 6))
-    if not total and not avg:
-        print(
-            "Unexpected data encountered while trying to draw a chart. Check the code."
-        )
-        print("Exiting program..")
-        sys.exit(1)
-    elif avg:
+
+    ss = graph_menu()
+    if ss == None:
+        return
+
+    # try:
+    if mode == "avg":
         x_values = np.arange(len(avg))
         plt.plot(x_values, avg, marker="o", label="Average Times")
         if n == 1:
             plt.legend(["Total time"])
         else:
             plt.legend(["Average time / shiny"])
-    elif total:
+    elif mode == "total":
         x_values = np.arange(len(total))
         plt.plot(x_values, total, marker="o", label="Total Times")
         plt.legend(["Total time"])
     else:
-        print(
-            "Unexpected data encountered while trying to draw a chart. Check the code."
-        )
-        print("Exiting program..")
-        sys.exit(1)
+        print("Unexpected data encountered while trying to draw a chart.")
+        return
 
     plt.ylabel("Time (minutes)")
     plt.xlabel("Chain Number")
     plt.grid(axis="both", linestyle="--", alpha=0.7)
     plt.ylim(bottom=0)
 
-    if not os.path.exists("charts"):
-        os.makedirs("charts")
-    if not os.path.exists("charts/total") and total:
-        os.makedirs("charts/total")
-    if not os.path.exists("charts/avg") and avg:
-        os.makedirs("charts/avg")
+    os.makedirs("charts", exist_ok=True)
+    if mode == "total":
+        os.makedirs("charts/total", exist_ok=True)
+    if mode == "avg":
+        os.makedirs("charts/avg", exist_ok=True)
 
-    if avg:
+    if mode == "avg":
         if not os.path.exists(f"charts/avg/SS_{SS}"):
             os.makedirs(f"charts/avg/SS_{SS}")
         if n == 1:
             filename = f"charts/avg/SS_{SS}/time_for_1_shiny_per_chain.png"
         else:
             filename = f"charts/avg/SS_{SS}/avg_time_for_{n}_shinies_per_chain.png"
-    elif total:
+    elif mode == "total":
         if not os.path.exists(f"charts/total/SS_{SS}"):
             os.makedirs(f"charts/total/SS_{SS}")
         if n == 1:
@@ -90,31 +84,13 @@ def time_spent_all_chart(mode: str):
     Returns:
         None
     """
-    SS_list = []
-    choice = -1
-    ss = ""
     plt.figure(figsize=(10, 6))
 
-    SS_list = get_SS("data/")
+    ss = graph_menu()
+    if ss == None:
+        return
+
     try:
-        # Menu
-        if len(SS_list) > 1:
-            while choice < 0 or choice > len(SS_list):
-                print("From which sample size would you like the graph from?")
-                for i, num in enumerate(SS_list):
-                    print(f"{i + 1}) Sample Size {num}")
-                print("0) Cancel")
-
-                choice = int(input("Your choice: ").strip())
-                if choice == 0:
-                    return
-                elif 0 <= choice <= len(SS_list):
-                    ss = SS_list[choice - 1]
-                else:
-                    print("Invalid input. Please enter a valid choice\n")
-        else:
-            ss = SS_list[0]
-
         if mode == "avg":
             with open(f"data/avg_time_data_SS_{ss}.txt", "r") as file:
                 lines = file.readlines()
