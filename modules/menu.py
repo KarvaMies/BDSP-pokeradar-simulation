@@ -2,12 +2,12 @@ import os
 import sys
 import traceback
 import glob
-from data_handler import delete_files, restore_files
+from data_handler import delete_files, restore_files, get_SS
 from chart_generator import time_spent_chart, time_spent_all_chart
 from simulation import run_simulation
 
 MAX_CHAIN = 40
-SAMPLE_SIZE = 51  # 00  # 30000
+SAMPLE_SIZE = 300  # 5000  # 30000
 ODDS = [
     4096,
     3855,
@@ -152,6 +152,29 @@ def get_n_shinies():
             sys.exit(0)
         else:
             print("Invalid input. Please enter a psoitive number.\n")
+
+
+def graph_menu():
+    SS_list = []
+    choice = -1
+    SS_list = get_SS("data/")
+
+    if len(SS_list) > 1:
+        while choice < 0 or choice > len(SS_list):
+            print("From which sample size would you like the graph from?")
+            for i, num in enumerate(SS_list):
+                print(f"{i + 1}) Sample Size {num}")
+            print("0) Cancel")
+
+            choice = int(input("Your choice: ").strip())
+            if choice == 0:
+                return None
+            elif 0 <= choice <= len(SS_list):
+                return SS_list[choice - 1]
+            else:
+                print("Invalid input. Please enter a valid choice\n")
+    else:
+        return SS_list[0]
 
 
 if __name__ == "__main__":
