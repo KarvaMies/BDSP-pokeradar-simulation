@@ -5,7 +5,7 @@ import sys
 from menu import graph_menu
 
 
-def time_spent_chart(mode: str, SS: int):
+def time_spent_chart(mode: str):
     """
     Draws and shows chart from a chosen simulation data.
 
@@ -17,28 +17,37 @@ def time_spent_chart(mode: str, SS: int):
     Returns:
         None
     """
+    from menu import line_menu
+
     plt.figure(figsize=(10, 6))
 
     ss = graph_menu()
     if ss == None:
         return
 
-    # try:
     if mode == "avg":
-        x_values = np.arange(len(avg))
-        plt.plot(x_values, avg, marker="o", label="Average Times")
-        if n == 1:
-            plt.legend(["Total time"])
-        else:
-            plt.legend(["Average time / shiny"])
+        file_path = f"data/avg_time_data_SS_{ss}.txt"
+        label = "Average Times"
+        legend = ["Average time / shiny"]
     elif mode == "total":
-        x_values = np.arange(len(total))
-        plt.plot(x_values, total, marker="o", label="Total Times")
-        plt.legend(["Total time"])
+        file_path = f"data/total_time_data_SS_{ss}.txt"
+        label = "Total Times"
+        legend = ["Total time"]
     else:
         print("Unexpected data encountered while trying to draw a chart.")
         return
 
+    result = line_menu(file_path)
+    if result is None:
+        return
+    data, n_shinies = result
+
+    if mode == "avg" and n_shinies == 1:
+        legend = ["Total time"]
+
+    x_values = np.arange(len(data))
+    plt.plot(x_values, data, marker="o", label=label)
+    plt.legend(legend)
     plt.ylabel("Time (minutes)")
     plt.xlabel("Chain Number")
     plt.grid(axis="both", linestyle="--", alpha=0.7)
@@ -51,19 +60,23 @@ def time_spent_chart(mode: str, SS: int):
         os.makedirs("charts/avg", exist_ok=True)
 
     if mode == "avg":
-        if not os.path.exists(f"charts/avg/SS_{SS}"):
-            os.makedirs(f"charts/avg/SS_{SS}")
-        if n == 1:
-            filename = f"charts/avg/SS_{SS}/time_for_1_shiny_per_chain.png"
+        if not os.path.exists(f"charts/avg/SS_{ss}"):
+            os.makedirs(f"charts/avg/SS_{ss}")
+        if n_shinies == 1:
+            filename = f"charts/avg/SS_{ss}/time_for_1_shiny_per_chain.png"
         else:
-            filename = f"charts/avg/SS_{SS}/avg_time_for_{n}_shinies_per_chain.png"
+            filename = (
+                f"charts/avg/SS_{ss}/avg_time_for_{n_shinies}_shinies_per_chain.png"
+            )
     elif mode == "total":
-        if not os.path.exists(f"charts/total/SS_{SS}"):
-            os.makedirs(f"charts/total/SS_{SS}")
-        if n == 1:
-            filename = f"charts/total/SS_{SS}/time_for_1_shiny_per_chain.png"
+        if not os.path.exists(f"charts/total/SS_{ss}"):
+            os.makedirs(f"charts/total/SS_{ss}")
+        if n_shinies == 1:
+            filename = f"charts/total/SS_{ss}/time_for_1_shiny_per_chain.png"
         else:
-            filename = f"charts/total/SS_{SS}/avg_time_for_{n}_shinies_per_chain.png"
+            filename = (
+                f"charts/total/SS_{ss}/avg_time_for_{n_shinies}_shinies_per_chain.png"
+            )
     else:
         print("If you see this something really weird happened. Check the code!")
         print("Exiting program..")

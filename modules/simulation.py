@@ -14,8 +14,7 @@ def run_simulation(MAX_CHAIN: int, SAMPLE_SIZE: int, n_shinies: int, ODDS: list)
         ODDS: The list of odds to get a shiny patch with 1/ODDS[current_chain] chance
 
     Returns:
-        total_times (list): List of total times taken for each simulation
-        avg_times (list): List of average times taken per shiny for each simulation
+        None
     """
     total_times = []
     avg_times = []
@@ -72,5 +71,3 @@ def run_simulation(MAX_CHAIN: int, SAMPLE_SIZE: int, n_shinies: int, ODDS: list)
     print(f"Total time spent:\n{total_times}")
     print(f"Avg time spent/shiny:\n{avg_times}")
     save_data(total_times, avg_times, n_shinies, SAMPLE_SIZE)
-
-    return total_times, avg_times
