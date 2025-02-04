@@ -201,4 +201,4 @@ def get_SS(src: str):
         ss_part = file_name.split("_")[-1]
         if ss_part.isdigit():
             SS_list.add(ss_part)
-    return list(SS_list)
+    return sorted(list(SS_list))
