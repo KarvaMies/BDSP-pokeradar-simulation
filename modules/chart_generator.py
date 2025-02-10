@@ -5,39 +5,37 @@ import sys
 from menu import graph_menu
 
 
-def time_spent_chart(mode: str):
+def time_spent_chart(mode: str, ss: int = 0):
     """
     Draws and shows chart from a chosen simulation data.
 
     Args:
         mode (str): Tell if the chart is generated from total or average data.
             Must be either 'total' or 'avg'
-        SS (int): Sample Size of the simulation
+        ss (int): Sample Size of the simulation (if asked before)
 
     Returns:
         None
     """
     from menu import line_menu
 
-    plt.figure(figsize=(10, 6))
+    if ss == 0:
+        ss = graph_menu()
+        if ss == None:
+            return
 
-    ss = graph_menu()
-    if ss == None:
-        return
-
+    data_path = f"data/{mode}_time_data_SS_{ss}.txt"
     if mode == "avg":
-        file_path = f"data/avg_time_data_SS_{ss}.txt"
         label = "Average Times"
         legend = ["Average time / shiny"]
     elif mode == "total":
-        file_path = f"data/total_time_data_SS_{ss}.txt"
         label = "Total Times"
         legend = ["Total time"]
     else:
         print("Unexpected data encountered while trying to draw a chart.")
         return
 
-    result = line_menu(file_path)
+    result = line_menu(data_path)
     if result is None:
         return
     data, n_shinies = result
@@ -45,6 +43,20 @@ def time_spent_chart(mode: str):
     if mode == "avg" and n_shinies == 1:
         legend = ["Total time"]
 
+    if n_shinies == 1:
+        filename = f"charts/total/SS_{ss}/time_for_1_shiny_per_chain.png"
+    else:
+        filename = (
+            f"charts/{mode}/SS_{ss}/{mode}_time_for_{n_shinies}_shinies_per_chain.png"
+        )
+
+    if os.path.exists(filename) and use_existing_graph():
+        plt.imshow(plt.imread(filename))
+        plt.axis("off")
+        plt.show()
+        return
+
+    plt.figure(figsize=(10, 6))
     x_values = np.arange(len(data))
     plt.plot(x_values, data, marker="o", label=label)
     plt.legend(legend)
@@ -53,46 +65,24 @@ def time_spent_chart(mode: str):
     plt.grid(axis="both", linestyle="--", alpha=0.7)
     plt.ylim(bottom=0)
 
-    os.makedirs("charts", exist_ok=True)
-    if mode == "total":
-        os.makedirs("charts/total", exist_ok=True)
-    if mode == "avg":
-        os.makedirs("charts/avg", exist_ok=True)
-
-    if mode == "avg":
-        if not os.path.exists(f"charts/avg/SS_{ss}"):
-            os.makedirs(f"charts/avg/SS_{ss}")
-        if n_shinies == 1:
-            filename = f"charts/avg/SS_{ss}/time_for_1_shiny_per_chain.png"
-        else:
-            filename = (
-                f"charts/avg/SS_{ss}/avg_time_for_{n_shinies}_shinies_per_chain.png"
-            )
-    elif mode == "total":
-        if not os.path.exists(f"charts/total/SS_{ss}"):
-            os.makedirs(f"charts/total/SS_{ss}")
-        if n_shinies == 1:
-            filename = f"charts/total/SS_{ss}/time_for_1_shiny_per_chain.png"
-        else:
-            filename = (
-                f"charts/total/SS_{ss}/avg_time_for_{n_shinies}_shinies_per_chain.png"
-            )
+    if n_shinies == 1:
+        os.makedirs(f"charts/total/SS_{ss}", exist_ok=True)
+    elif n_shinies > 1:
+        os.makedirs(f"charts/{mode}/SS_{ss}", exist_ok=True)
     else:
-        print("If you see this something really weird happened. Check the code!")
-        print("Exiting program..")
-        sys.exit(1)
+        print("Something went wrong while drawing the graph.")
+        return
     plt.savefig(filename, dpi=300)
     plt.show()
 
 
 def time_spent_all_chart(mode: str):
     """
-    Draws and shows chart with all hunts.
+    Draws and shows chart with all simulated hunts for given sample size.
 
     Args:
         mode (str): Tell if the chart is generated from total or average data.
-                    Must be either 'total' or 'avg'.
-        SS (int): Sample Size of the simulation
+            Must be either 'total' or 'avg'.
 
     Returns:
         None
@@ -104,15 +94,8 @@ def time_spent_all_chart(mode: str):
         return
 
     try:
-        if mode == "avg":
-            with open(f"data/avg_time_data_SS_{ss}.txt", "r") as file:
-                lines = file.readlines()
-        elif mode == "total":
-            with open(f"data/total_time_data_SS_{ss}.txt", "r") as file:
-                lines = file.readlines()
-        else:
-            print("Unexpected mode encountered while trying to draw a chart.")
-            return
+        with open(f"data/{mode}_time_data_SS_{ss}.txt", "r") as file:
+            lines = file.readlines()
     except FileNotFoundError:
         print(
             "Could not find the data file. Make sure you save the data to the file first."
@@ -140,30 +123,39 @@ def time_spent_all_chart(mode: str):
         data.append(line)
         legend_marker += 1
 
+    if len(legend_num_list) == 1:
+        time_spent_chart(mode, ss, data)
+        return
+
+    legend_labels = []
+    legend_nums = ""
+
+    for num in legend_num_list:
+        legend_nums = f"{legend_nums}_{str(num)}"
+        if num == 1:
+            legend_labels.append("Time spent looking for a shiny")
+        elif mode == "avg":
+            legend_labels.append(f"Average time spent / shiny for {num} shinies")
+        elif mode == "total":
+            legend_labels.append(f"Total time for {num} shinies")
+
+    if legend_nums.startswith("_"):
+        legend_nums = legend_nums[1:]
+
+    filename = (
+        f"charts/{mode}/SS_{ss}/{mode}_time_for_{legend_nums}_shinies_per_chain.png"
+    )
+
+    if os.path.exists(filename) and use_existing_graph():
+        plt.imshow(plt.imread(filename))
+        plt.axis("off")
+        plt.show()
+        return
+
     x_values = np.arange(len(data[0]))
 
     for i, dataset in enumerate(data):
         plt.plot(x_values, dataset, marker="o", label=f"Chain {i + 1}")
-
-    legend_labels = []
-    legend_nums = ""
-    if mode == "avg":
-        for n in legend_num_list:
-            legend_nums = f"{legend_nums}_{str(n)}"
-            if n == 1:
-                legend_labels.append("Time spent looking for a shiny")
-            else:
-                legend_labels.append(f"Average time spent / shiny for {n} shinies")
-    elif mode == "total":
-        for n in legend_num_list:
-            legend_nums = f"{legend_nums}_{str(n)}"
-            if n == 1:
-                legend_labels.append("Time spent looking for a shiny")
-            else:
-                legend_labels.append(f"Total time for {n} shinies")
-
-    if legend_nums.startswith("_"):
-        legend_nums = legend_nums[1:]
 
     plt.legend(legend_labels)
     plt.xlabel("Chain Number")
@@ -171,24 +163,27 @@ def time_spent_all_chart(mode: str):
     plt.grid(axis="both", linestyle="--", alpha=0.7)
     plt.ylim(bottom=0)
 
-    if not os.path.exists("charts"):
-        os.makedirs("charts")
-    if not os.path.exists("charts/total"):
-        os.makedirs("charts/total")
-    if not os.path.exists("charts/avg"):
-        os.makedirs("charts/avg")
+    os.makedirs(f"charts/{mode}/SS_{ss}", exist_ok=True)
 
-    if mode == "avg":
-        if not os.path.exists(f"charts/avg/SS_{ss}"):
-            os.makedirs(f"charts/avg/SS_{ss}")
-        filename = (
-            f"charts/avg/SS_{ss}/avg_time_for_{legend_nums}_shinies_per_chain.png"
-        )
-    elif mode == "total":
-        if not os.path.exists(f"charts/total/SS_{ss}"):
-            os.makedirs(f"charts/total/SS_{ss}")
-        filename = (
-            f"charts/total/SS_{ss}/total_time_for_{legend_nums}_shinies_per_chain.png"
-        )
     plt.savefig(filename, dpi=300)
     plt.show()
+
+
+def use_existing_graph():
+    """
+    Asks if the user wants to use existing graph instead of drawing a new one
+
+    Args:
+        None
+
+    Returns:
+        bool
+    """
+    choice = "-1"
+    choice = input(f"Graph already exists. Use existing graph? (y/n) ").strip()
+    while choice.lower() not in ("y", "n"):
+        print("Invalid input. Please enter 'y' or 'n'\n")
+        choice = input(f"Graph already exists. Use existing graph? (y/n) ").strip()
+        if choice == "y":
+            return True
+    return False
