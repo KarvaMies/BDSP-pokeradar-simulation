@@ -95,6 +95,8 @@ def main_menu():
         try:
             if choice == "1":
                 n_shinies = get_n_shinies()
+                if n_shinies is None:
+                    continue
                 run_simulation(MAX_CHAIN, SAMPLE_SIZE, n_shinies, ODDS)
 
             elif choice == "2" and total_exists:
@@ -141,8 +143,7 @@ def get_n_shinies():
         if num_of_shinies.isdigit() and int(num_of_shinies) > 0:
             return int(num_of_shinies)
         elif num_of_shinies == "0":
-            print("Exiting the program..")
-            sys.exit(0)
+            return None
         else:
             print("Invalid input. Please enter a psoitive number.\n")
 
