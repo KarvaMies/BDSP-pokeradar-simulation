@@ -2,54 +2,7 @@ import os
 import sys
 import traceback
 import glob
-from data_handler import delete_files, restore_files, get_SS
-from simulation import run_simulation
-
-MAX_CHAIN = 40
-SAMPLE_SIZE = 5000  # 30000
-ODDS = [
-    4096,
-    3855,
-    3640,
-    3449,
-    3277,
-    3121,
-    2979,
-    2849,
-    2731,
-    2621,
-    2521,
-    2427,
-    2341,
-    2259,
-    2185,
-    2114,
-    2048,
-    1986,
-    1927,
-    1872,
-    1820,
-    1771,
-    1724,
-    1680,
-    1638,
-    1598,
-    1560,
-    1524,
-    1489,
-    1456,
-    1310,
-    1285,
-    1260,
-    1236,
-    1213,
-    1192,
-    993,
-    799,
-    400,
-    200,
-    99,
-]
+import modules
 
 
 def main_menu():
@@ -65,7 +18,6 @@ def main_menu():
     Returns:
         None
     """
-    from chart_generator import time_spent_chart, time_spent_all_chart
 
     choice = "-1"
 
@@ -97,25 +49,25 @@ def main_menu():
                 n_shinies = get_n_shinies()
                 if n_shinies is None:
                     continue
-                run_simulation(MAX_CHAIN, SAMPLE_SIZE, n_shinies, ODDS)
+                modules.run_simulation(n_shinies)
 
             elif choice == "2" and total_exists:
-                time_spent_chart("total")
+                modules.time_spent_chart("total")
             elif choice == "3" and total_exists:
-                time_spent_all_chart("total")
+                modules.time_spent_all_chart("total")
             elif choice == "4" and avg_exists:
-                time_spent_chart("avg")
+                modules.time_spent_chart("avg")
             elif choice == "5" and avg_exists:
-                time_spent_all_chart("avg")
+                modules.time_spent_all_chart("avg")
             elif choice == "6" and os.path.exists("data/") and os.listdir("data/"):
-                delete_files("data/")
+                modules.delete_files("data/")
             elif choice == "7" and (
                 (os.path.exists("charts/avg/") and os.listdir("charts/avg/"))
                 or (os.path.exists("charts/total/") and os.listdir("charts/total/"))
             ):
-                delete_files("charts/")
+                modules.delete_files("charts/")
             elif choice == "8" and os.path.exists("deleted/"):
-                restore_files()
+                modules.restore_files()
             elif choice == "0":
                 print("Exiting the program..")
                 sys.exit(0)
@@ -160,7 +112,7 @@ def graph_menu():
     """
     SS_list = []
     choice = -1
-    SS_list = get_SS("data/")
+    SS_list = modules.get_SS("data/")
 
     if len(SS_list) > 1:
         while choice < 0 or choice > len(SS_list):
@@ -221,10 +173,3 @@ def line_menu(file_path: str):
     except FileNotFoundError:
         print("Could not find the data file. Make sure it exists.")
         return None
-
-
-if __name__ == "__main__":
-    print(
-        "Welcome to Pokéradar shiny hunting simulation tool for Pokémon Brilliand Diamond and Shining Pearl!"
-    )
-    main_menu()

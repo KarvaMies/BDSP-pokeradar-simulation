@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from menu import graph_menu
+import modules
 
 
 def time_spent_chart(mode: str, ss: int = 0):
@@ -16,10 +16,9 @@ def time_spent_chart(mode: str, ss: int = 0):
     Returns:
         None
     """
-    from menu import line_menu
 
     if ss == 0:
-        ss = graph_menu()
+        ss = modules.graph_menu()
         if ss == None:
             return
 
@@ -34,7 +33,7 @@ def time_spent_chart(mode: str, ss: int = 0):
         print("Unexpected data encountered while trying to draw a chart.")
         return
 
-    result = line_menu(data_path)
+    result = modules.line_menu(data_path)
     if result is None:
         return
     data, n_shinies = result
@@ -88,7 +87,7 @@ def time_spent_all_chart(mode: str):
     """
     plt.figure(figsize=(10, 6))
 
-    ss = graph_menu()
+    ss = modules.graph_menu()
     if ss == None:
         return
 

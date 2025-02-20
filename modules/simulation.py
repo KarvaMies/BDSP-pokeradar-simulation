@@ -1,17 +1,15 @@
 import random
 from tqdm import tqdm
-from data_handler import save_data
+from config import MAX_CHAIN, SAMPLE_SIZE, ODDS
+import modules
 
 
-def run_simulation(MAX_CHAIN: int, SAMPLE_SIZE: int, n_shinies: int, ODDS: list):
+def run_simulation(n_shinies: int):
     """
     Runs the shiny hunting simulation.
 
     Args:
-        MAX_CHAIN: The maximum number of chains allowed in simulation (1-40)
-        SAMPLE_SIZE: The number the hunt is simulated. Values over 10000 will take a lot of time
         n_shinies: The number of shinies wanted in the hunt. Values over 5 will take a lot of time
-        ODDS: The list of odds to get a shiny patch with 1/ODDS[current_chain] chance
 
     Returns:
         None
@@ -70,4 +68,4 @@ def run_simulation(MAX_CHAIN: int, SAMPLE_SIZE: int, n_shinies: int, ODDS: list)
 
     print(f"Total time spent:\n{total_times}")
     print(f"Avg time spent/shiny:\n{avg_times}")
-    save_data(total_times, avg_times, n_shinies, SAMPLE_SIZE)
+    modules.save_data(total_times, avg_times, n_shinies, SAMPLE_SIZE)
