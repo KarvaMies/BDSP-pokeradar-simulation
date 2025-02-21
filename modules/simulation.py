@@ -66,6 +66,4 @@ def run_simulation(n_shinies: int):
         total_times.append(round(local_time / (60 * SAMPLE_SIZE)))
         avg_times.append(round(local_time / (60 * SAMPLE_SIZE * n_shinies)))
 
-    print(f"Total time spent:\n{total_times}")
-    print(f"Avg time spent/shiny:\n{avg_times}")
     modules.save_data(total_times, avg_times, n_shinies, SAMPLE_SIZE)
