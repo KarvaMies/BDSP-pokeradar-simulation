@@ -2,18 +2,16 @@ import os
 import sys
 import traceback
 import glob
+from tqdm import tqdm
 import modules
 
 
 def main_menu():
     """
-    Prints and operates the menu.
+    Displays the main menu and handles user choices.
 
     Args:
-        data_total (list): List of times taken for hunts
-        data_avg (list): List of average times taken for hunts
-        shinies (int): Number of shinies hunted
-        hunt (bool): Tells if hunt simulation has been done since the program started
+        None
 
     Returns:
         None
@@ -46,10 +44,19 @@ def main_menu():
 
         try:
             if choice == "1":
-                n_shinies = get_n_shinies()
-                if n_shinies is None:
+                shiny_list = get_n_shinies()
+                if shiny_list is None:
                     continue
-                modules.run_simulation(n_shinies)
+
+                if len(shiny_list) > 1:
+                    print("\n🔄  Runnin multiple simulations... 🔄")
+                for n_shinies in shiny_list:
+                    print(
+                        f"\n✨  Simulating {n_shinies} shin{'ies' if n_shinies > 1 else 'y'}... ✨"
+                    )
+                    modules.run_simulation(n_shinies)
+                if len(shiny_list) > 1:
+                    print("\n✅  All simulations completed! ✅")
 
             elif choice == "2" and total_exists:
                 modules.time_spent_chart("total")
@@ -80,24 +87,54 @@ def main_menu():
 
 def get_n_shinies():
     """
-    Asks the user how many shinies they plan to hunt, 0 exits the program.
+    Asks the user how many shinies they plan to hunt, 0 exits the program and multiple simulations are allowed.
+
+    Example input: "1, 3" → Runs two simulations (one for 1 shiny, one for 3 shinies)
 
     Args:
         None
 
     Returns:
-        num_of_shinies (int): Number of wanted shinies
+        list[int]: A list of numbers representing how many shinies to hunt in each simulation
     """
     while True:
         num_of_shinies = input(
-            "How many shinies do you plan to hunt? (0 exits) "
+            "How many shinies do you plan to hunt? (Separate multiple values with commas, 0 exits) "
         ).strip()
-        if num_of_shinies.isdigit() and int(num_of_shinies) > 0:
-            return int(num_of_shinies)
-        elif num_of_shinies == "0":
+
+        if num_of_shinies == "0":
             return None
-        else:
-            print("Invalid input. Please enter a psoitive number.\n")
+
+        try:
+            hunt_list = [
+                int(n.strip()) for n in num_of_shinies.split(",") if n.strip().isdigit()
+            ]
+
+            if all(n > 0 for n in hunt_list):
+                total_shinies = sum(hunt_list)
+
+                if len(hunt_list) > 2 or total_shinies > 4:
+                    print(
+                        f"⚠️  Warning: You're running {len(hunt_list)} simulations for a total of {total_shinies} shinies. ⚠️"
+                    )
+                    print("This may take a long time!")
+                    while True:
+                        cont = input(
+                            "Are you sure you want to continue? (y/n) "
+                        ).strip()
+                        if cont == "y":
+                            break
+                        elif cont == "n":
+                            return None
+                        else:
+                            print("Invalid input. PLease type only 'y' or 'n'\n")
+
+                    return hunt_list
+            else:
+                print("Invalid input. Please enter only psoitive numbers.\n")
+
+        except ValueError:
+            print("Invalid input. Please enter numbers separated by commas.\n")
 
 
 def graph_menu():
