@@ -49,7 +49,7 @@ def main_menu():
                     continue
 
                 if len(shiny_list) > 1:
-                    print("\n🔄  Runnin multiple simulations... 🔄")
+                    print("\n🔄  Running multiple simulations... 🔄")
                 for n_shinies in shiny_list:
                     print(
                         f"\n✨  Simulating {n_shinies} shin{'ies' if n_shinies > 1 else 'y'}... ✨"
