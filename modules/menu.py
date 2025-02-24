@@ -1,9 +1,4 @@
-import os
-import sys
-import traceback
-import glob
-from tqdm import tqdm
-import modules
+import os, sys, traceback, glob, modules
 
 
 def main_menu():
@@ -129,7 +124,7 @@ def get_n_shinies():
                         else:
                             print("Invalid input. PLease type only 'y' or 'n'\n")
 
-                    return hunt_list
+                return hunt_list
             else:
                 print("Invalid input. Please enter only psoitive numbers.\n")
 

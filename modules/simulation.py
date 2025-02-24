@@ -1,7 +1,6 @@
-import random
+import random, modules
 from tqdm import tqdm
 from config import MAX_CHAIN, SAMPLE_SIZE, ODDS
-import modules
 
 
 def run_simulation(n_shinies: int):
@@ -17,7 +16,14 @@ def run_simulation(n_shinies: int):
     total_times = []
     avg_times = []
 
-    for local_chain in tqdm(range(1, MAX_CHAIN + 1), desc="Chain progress", ncols=100):
+    for local_chain in tqdm(
+        range(1, MAX_CHAIN + 1),
+        desc="🔹Chain progress",
+        ncols=100,
+        unit=" chain",
+        ascii="░▒█",
+        mininterval=5,
+    ):
         local_time = 0
         for _ in range(SAMPLE_SIZE):
             current_chain = 0

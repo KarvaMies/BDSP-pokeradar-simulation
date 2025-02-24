@@ -2,7 +2,7 @@
 
 # Simulation settings
 MAX_CHAIN = 40
-SAMPLE_SIZE = 50  # 00  # 30000
+SAMPLE_SIZE = 150  # 5000 30000
 
 # Pokéradar shiny odds table
 ODDS = [

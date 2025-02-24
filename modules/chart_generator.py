@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import modules
+import os, modules
 
 
 def time_spent_chart(mode: str, ss: int = 0):
