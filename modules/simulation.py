@@ -20,7 +20,7 @@ def run_simulation(n_shinies: int):
         range(1, MAX_CHAIN + 1),
         desc="🔹Chain progress",
         ncols=100,
-        unit=" chain",
+        unit="chain",
         ascii="░▒█",
         mininterval=5,
     ):
